@@ -14,7 +14,7 @@
         </v-flex>
     </v-layout>
     <v-layout row wrap>
-      <v-flex xs12 sm6 md4 lg3 v-for="ingredient of filteredIngredients" :key="ingredient.id">
+      <v-flex xs12 sm6 md4 lg3 v-for="ingredient of ingredients" :key="ingredient.id">
         <v-card class="ingredient-card mt-2 ml-2">
           <v-card-text>
             <v-layout row wrap>
@@ -38,6 +38,7 @@
 
 <script>
     import AddNewIngredient from '@/components/AddNewIngredient'
+    import store from '@/store/Index'
 
     export default {
         components: {
@@ -45,36 +46,21 @@
         },
         data() {
             return {
-                filter: "",
-                ingredients: [
-                    {
-                        id: 1,
-                        title: "Cebula"
-                    },
-                    {
-                        id: 2,
-                        title: "Cesn"
-                    },
-                    {
-                        id: 3,
-                        title: "Paprika"
-                    },
-                    {
-                        id: 4,
-                        title: "Paradajz"
-                    },
-                ]
+                filter: ""
             }
         },
         computed: {
-            filteredIngredients() {
-                return this.ingredients.filter(ingredient => ingredient.title.toLowerCase().includes(this.filter.toLowerCase()))
+            ingredients() {
+                return store.getters['Ingredients/filtered'](this.filter)
             }
         },
         methods: {
             remove(ingredient) {
-                alert("deleted " + ingredient.title)
+                this.$store.dispatch('Ingredients/delete', ingredient)
             }
+        },
+        created() {
+            this.$store.dispatch('Ingredients/getAll')
         }
     }
 </script>

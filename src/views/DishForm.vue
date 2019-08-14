@@ -23,10 +23,15 @@
         class="mt-4"
       ></v-textarea>
 
+      <v-text-field
+        label="Url"
+        v-model="dish.url"
+      ></v-text-field>
+
       <v-layout row wrap justify-space-between fill-height align-center text-xs-center class="mt-4 ingredient-row">
         <v-flex xs7>
           <v-autocomplete
-            v-model="selectedIngredients"
+            v-model="dish.ingredients"
             :items="ingredients"
             label="Ingredients"
             item-text="title"
@@ -44,7 +49,17 @@
         </v-flex>
       </v-layout>
 
-      <v-btn @click="save">Save</v-btn>
+      <v-layout>
+        <v-spacer></v-spacer>
+        <router-link to="/dish-list"><v-btn>Cancel</v-btn></router-link>
+        <v-btn 
+          :loading="saving"
+          :disabled="saving"
+          @click="save"
+        >
+          Save
+        </v-btn>
+      </v-layout>
     </form>
 
   </div>
@@ -54,6 +69,8 @@
 import { validationMixin } from 'vuelidate'
 import { required, maxLength } from 'vuelidate/lib/validators'
 import AddNewIngredient from '@/components/AddNewIngredient'
+import store from '@/store/Index'
+import EventBus from '@/EventBus'
 
 export default {
   name: 'Dish',
@@ -70,34 +87,34 @@ export default {
   },
   data () {
     return {
-      dish: {
-        title: "ribe, pire, zelenjava, solata",
-        description: "Odtalit, odcedit, popivnat ribji file, preden gre v olje ga posolis in pomokas s koruzno moko."
+      newDish: {
+        title: "",
+        description: "",
+        url: "",
+        ingredients: []
       },
-      ingredients: [],
-      selectedIngredients: [],
-      newIngredient: "",
-      ingredients: [
-        {
-          id: "1",
-          title: "Cesn"
-        },
-        {
-          id: "2",
-          title: "Cebula"
-        },
-        {
-          id: "3",
-          title: "Poper"
-        },
-        {
-          id: "4",
-          title: "Sol"
-        }
-      ]
+      saving: false
     }
   },
   computed: {
+    isNewItem() {
+      return this.$route.params.id ? false : true
+    },
+    ingredients() {
+      return store.getters['Ingredients/filtered']('')
+    },
+    dish: {
+      get() {
+        return this.isNewItem ? this.newDish : this.storeDish
+      },
+      set(dish) {}
+    },
+    storeDish: {
+      get() {
+        return store.getters['Dishes/byId'](this.$route.params.id)
+      },
+      set(dish) {}
+    },
     errors() {
         let errors = {}
         errors.title = []
@@ -114,8 +131,33 @@ export default {
   methods: {
     save() {
       this.$v.$touch()
-      alert("yeeeey, its saved!")
+      this.saving = true
+      if (this.isNewItem) {
+        this.$store.dispatch('Dishes/create', this.dish)
+      } else {
+        this.$store.dispatch('Dishes/update', this.dish)
+      }
     }
+  },
+  created() {
+    this.$store.dispatch('Dishes/getAll')
+    this.$store.dispatch('Ingredients/getAll')
+    
+
+    EventBus.$on('dish-updated', () => {
+      this.$router.push('/dish-list')
+    })
+    EventBus.$on('dish-created', () => {
+      this.$router.push('/dish-list')
+    })
+    EventBus.$on('ingredient-created', (ingredient) => {
+      console.log('ingredient-created event detected')
+      if (this.isNewItem) {
+        this.newDish.ingredients.push(ingredient.id)
+      } else {
+        this.storeDish.ingredients.push(ingredient.id)
+      }
+    })
   }
 }
 </script>

@@ -21,7 +21,7 @@
       </router-link>
     </v-layout>
     <v-layout row wrap>
-      <v-flex xs12 v-for="dish of filteredDishes" :key="dish.id">
+      <v-flex xs12 v-for="dish of dishes" :key="dish.id">
         <v-card class="dish-card mb-2">
           <v-card-text>
             <router-link :to="`/dish/${dish.id}`">
@@ -30,12 +30,12 @@
                   {{dish.title}}
                 </span>
                 <v-spacer></v-spacer>
-                <v-btn icon small to="/edit-dish/13" class="edit-btn">
+                <v-btn icon small :to="`/edit-dish/${dish.id}`" class="edit-btn">
                   <v-icon small color="blue lighten-1">
                     edit
                   </v-icon>
                 </v-btn>
-                <v-btn icon small to="/dish/13" class="delete-btn">
+                <v-btn icon small @click.stop.prevent="deleteDish(dish)" class="delete-btn">
                   <v-icon small color="red lighten-1">
                     delete
                   </v-icon>
@@ -50,31 +50,27 @@
 </template>
 
 <script>
+import store from '@/store/Index'
+
 export default {
   name: "DishList",
   data() {
     return {
-      filter: "",
-      dishes: [
-        {
-          id: 1,
-          title: "ribe, pire, zelenjava, solata"
-        },
-        {
-          id: 2,
-          title: "polnjene paprike, pire krompir"
-        },
-        {
-          id: 3,
-          title: "goveji golaz in polenta, zelena solata"
-        }
-      ]
+      filter: ""
     }
   },
   computed: {
-    filteredDishes() {
-      return this.dishes.filter(dish => dish.title.toLowerCase().includes(this.filter.toLowerCase()))
+    dishes() {
+      return store.getters['Dishes/filtered'](this.filter)
     }
+  },
+  methods: {
+    deleteDish(dish) {
+      this.$store.dispatch('Dishes/delete', dish)
+    }
+  },
+  created() {
+    this.$store.dispatch('Dishes/getAll')
   }
 }
 </script>

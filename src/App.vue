@@ -59,6 +59,14 @@ export default {
   },
   data: () => ({
     drawer: true
-  })
+  }),
+  methods: {
+    hideDrawerOnMobileDevices() {
+      this.drawer = this.$vuetify.breakpoint.mdAndDown ? false : true
+    }
+  },
+  created() {
+    this.hideDrawerOnMobileDevices()
+  }
 }
 </script>

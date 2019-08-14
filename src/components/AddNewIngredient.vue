@@ -19,14 +19,10 @@
         },
         methods: {
             addNewItem() {
-                let last = this.$parent.ingredients.pop()
                 let ingredient = {
-                    id: last.id + 1,
                     title: this.newItem
                 }
-                this.$emit('ingredient-added', ingredient)
-                this.$parent.ingredients.push(last)
-                this.$parent.ingredients.push(ingredient)
+                this.$store.dispatch('Ingredients/create', ingredient)
                 this.newItem = ""
             }
         }
